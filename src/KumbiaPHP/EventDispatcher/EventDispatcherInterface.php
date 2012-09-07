@@ -40,4 +40,10 @@ interface EventDispatcherInterface
      * @param string $listener nombre del servicio
      */
     public function removeListener($eventName, $listener);
+    
+    /**
+     * Retorna los escuchas registrados en el dispatcher
+     * @return array 
+     */
+    public function getListeners();
 }

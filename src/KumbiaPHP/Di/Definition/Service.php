@@ -18,6 +18,7 @@ class Service implements DefinitionInterface
      * @var string 
      */
     protected $id;
+
     /**
      * Arreglo con la configuracion para el servicio.
      * 
@@ -62,6 +63,11 @@ class Service implements DefinitionInterface
     public function setConfig($config)
     {
         $this->config = $config;
+    }
+
+    public static function __set_state($config)
+    {
+        return new static($config['id'], $config['config']);
     }
 
 }

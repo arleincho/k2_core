@@ -2,6 +2,7 @@
 
 namespace KumbiaPHP\Di\Definition;
 
+use \Serializable;
 use KumbiaPHP\Di\Definition\DefinitionInterface;
 use KumbiaPHP\Di\Definition\Service;
 
@@ -10,7 +11,7 @@ use KumbiaPHP\Di\Definition\Service;
  *
  * @author manuel
  */
-class DefinitionManager
+class DefinitionManager implements Serializable
 {
 
     /**
@@ -28,10 +29,10 @@ class DefinitionManager
     /**
      * Constructor de la clase 
      */
-    public function __construct()
+    public function __construct(array $services = array(), array $params = array())
     {
-        $this->services = array();
-        $this->parameters = array();
+        $this->services = $services;
+        $this->parameters = $params;
     }
 
     /**
@@ -104,7 +105,7 @@ class DefinitionManager
      * Devuelve los servicios agregados.
      * @return array 
      */
-    public function getSerivces()
+    public function getServices()
     {
         return $this->services;
     }
@@ -116,6 +117,26 @@ class DefinitionManager
     public function getParams()
     {
         return $this->parameters;
+    }
+
+    public function serialize()
+    {
+        return serialize(array(
+                    'services' => $this->services,
+                    'parameters' => $this->parameters,
+                ));
+    }
+
+    public function unserialize($config)
+    {
+        $config = unserialize($config);
+        $this->services = $config['services'];
+        $this->parameters = $config['parameters'];
+    }
+
+    public static function __set_state($config)
+    {
+        return new static($config['services'], $config['parameters']);
     }
 
 }

@@ -32,9 +32,10 @@ class EventDispatcher implements EventDispatcherInterface
      * Constructor de la clase.
      * @param ContainerInterface $container 
      */
-    public function __construct(ContainerInterface $container)
+    public function __construct(ContainerInterface $container, array $listeners = array())
     {
         $this->container = $container;
+        $this->listeners = $listeners;
     }
 
     /**
@@ -92,6 +93,11 @@ class EventDispatcher implements EventDispatcherInterface
             } while (next($this->listeners[$eventName]));
         }
         unset($this->listeners[$eventName][$key]);
+    }
+
+    public function getListeners()
+    {
+        return $this->listeners;
     }
 
 }

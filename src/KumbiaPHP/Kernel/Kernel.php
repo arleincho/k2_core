@@ -117,14 +117,22 @@ abstract class Kernel implements KernelInterface
     {
         //creamos la instancia del AppContext
         $context = new AppContext($this->request, $this->production, $this->getAppPath(), $this->routes, $this->namespaces);
-        //leemos la config de la app
-        $config = new ConfigReader($context);
-        //iniciamos el container con esa config
-        $this->initContainer($config->getConfig());
+
+        if (!$this->production || ($this->production && !$this->hasCache())) {
+            //leemos la config de la app
+            $config = new ConfigReader($context);
+            //iniciamos el container con esa config
+            $this->initContainer($config->getConfig());
+            //iniciamos el dispatcher con esa config
+            $this->initDispatcher($config->getConfig());
+            if ($this->production) {
+                $this->createCache();
+            }
+        } else {
+            $this->initFromCache();
+        }
         //asignamos el kernel al container como un servicio
         self::$container->set('app.kernel', $this);
-        //iniciamos el dispatcher con esa config
-        $this->initDispatcher($config->getConfig());
 
         //le asignamos el servicio session al request
         $this->request->setSession(self::$container->get('session'));
@@ -267,6 +275,34 @@ abstract class Kernel implements KernelInterface
                 }
             }
         }
+    }
+
+    protected function hasCache()
+    {
+        $fileDef = $this->appPath . '/temp/cache/defintions.php';
+        $fileListeners = $this->appPath . '/temp/cache/listeners.php';
+        return file_exists($fileDef) && file_exists($fileListeners);
+    }
+
+    protected function initFromCache()
+    {
+        $fileDef = $this->appPath . '/temp/cache/defintions.php';
+        $fileListeners = $this->appPath . '/temp/cache/listeners.php';
+        $definitions = require $fileDef;
+        $listeners = require $fileListeners;
+        $this->di = new DependencyInjection();
+        self::$container = new Container($this->di, $definitions);
+        $this->dispatcher = new EventDispatcher(self::$container, $listeners);
+    }
+
+    protected function createCache()
+    {
+        $fileDef = $this->appPath . '/temp/cache/defintions.php';
+        $fileListeners = $this->appPath . '/temp/cache/listeners.php';
+        $definitions = var_export(self::$container->getDefinitionManager(), true);
+        $listeners = var_export($this->dispatcher->getListeners(), true);
+        file_put_contents($fileListeners, "<?php\nreturn $listeners;");
+        file_put_contents($fileDef, "<?php\nreturn $definitions;");
     }
 
 }

@@ -42,4 +42,9 @@ class Parameter implements DefinitionInterface
         $this->value = $value;
     }
 
+    public static function __set_state($config)
+    {
+        return new static($config['id'], $config['value']);
+    }
+
 }
